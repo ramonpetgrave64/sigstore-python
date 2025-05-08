@@ -17,6 +17,11 @@ All versions prior to 0.9.0 are untracked.
 * API: Make Rekor APIs compatible with Rekor v2 by removing trailing slashes
   from endpoints ([#1366](https://github.com/sigstore/sigstore-python/pull/1366))
 
+### Changed
+
+* Rekor: Made the LogID (the log's public key, as in Rekor V1) optional to verify the checkpoint. Instead all public
+  keys in the local keyring will be tried to verify the checkpoint.
+
 ## [3.6.2]
 
 ### Fixed

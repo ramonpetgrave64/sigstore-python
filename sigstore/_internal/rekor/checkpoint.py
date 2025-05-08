@@ -172,11 +172,6 @@ class SignedNote:
         note = str.encode(self.note)
 
         for sig in self.signatures:
-            if sig.sig_hash != key_id[:4]:
-                raise VerificationError(
-                    "checkpoint: sig_hash hint does not match expected key_id"
-                )
-
             try:
                 rekor_keyring.verify(
                     key_id=key_id, signature=base64.b64decode(sig.signature), data=note
