@@ -215,7 +215,7 @@ class LogEntry:
             checkpoint=inclusion_proof.checkpoint.envelope,
             hashes=[h.hex() for h in inclusion_proof.hashes],
             log_index=inclusion_proof.log_index,
-            root_hash=inclusion_proof.root_hash.hex(),
+            root_hash=inclusion_proof.root_hash.decode(),
             tree_size=inclusion_proof.tree_size,
         )
 
@@ -247,7 +247,7 @@ class LogEntry:
 
         inclusion_proof = rekor_v1.InclusionProof(
             log_index=self.inclusion_proof.log_index,
-            root_hash=bytes.fromhex(self.inclusion_proof.root_hash),
+            root_hash=self.inclusion_proof.root_hash.encode(),
             tree_size=self.inclusion_proof.tree_size,
             hashes=[bytes.fromhex(hash_) for hash_ in self.inclusion_proof.hashes],
             checkpoint=rekor_v1.Checkpoint(envelope=self.inclusion_proof.checkpoint),
