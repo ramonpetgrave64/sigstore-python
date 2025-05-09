@@ -215,7 +215,7 @@ class LogEntry:
             checkpoint=inclusion_proof.checkpoint.envelope,
             hashes=[h.hex() for h in inclusion_proof.hashes],
             log_index=inclusion_proof.log_index,
-            root_hash=inclusion_proof.root_hash.decode(),
+            root_hash=inclusion_proof.root_hash.hex(),
             tree_size=inclusion_proof.tree_size,
         )
 
