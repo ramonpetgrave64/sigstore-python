@@ -211,11 +211,23 @@ class LogEntry:
         if not inclusion_proof or not inclusion_proof.checkpoint.envelope:
             raise InvalidBundle("entry must contain inclusion proof, with checkpoint")
 
+        # RekorV1 will hex-encode, but RekorV2 will not.
+        # See https://github.com/sigstore/rekor/blob/140f622a85d9eeb72677f6ab7de21744954eb4cc/pkg/api/entries.go#L446-L448.
+        try:
+            # Rekor V2
+            root_hash = inclusion_proof.root_hash.decode()
+        except UnicodeDecodeError as exc:
+            # Rekor V1
+            _logger.warning(exc)
+            root_hash = inclusion_proof.root_hash.hex()
+
+        _logger.info(inclusion_proof.root_hash)
+
         parsed_inclusion_proof = LogInclusionProof(
             checkpoint=inclusion_proof.checkpoint.envelope,
             hashes=[h.hex() for h in inclusion_proof.hashes],
             log_index=inclusion_proof.log_index,
-            root_hash=inclusion_proof.root_hash.hex(),
+            root_hash=root_hash,
             tree_size=inclusion_proof.tree_size,
         )
 
