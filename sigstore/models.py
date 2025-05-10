@@ -270,12 +270,12 @@ class LogEntry:
 
         # Rekor V1 will hex-encode, but Rekor 2 will not.
         # See https://github.com/sigstore/rekor/blob/140f622a85d9eeb72677f6ab7de21744954eb4cc/pkg/api/entries.go#L446-L448.
-        if self.kind_version.version == "0.0.1":
-            # Rekor V1
-            root_hash = bytes.fromhex(self.inclusion_proof.root_hash)
-        else:
+        if self.kind_version.version == "0.0.2":
             # Rekor V2
             root_hash = self.inclusion_proof.root_hash.encode()
+         else:
+            # Rekor V1
+            root_hash = bytes.fromhex(self.inclusion_proof.root_hash)
 
         inclusion_proof = rekor_v1.InclusionProof(
             log_index=self.inclusion_proof.log_index,
