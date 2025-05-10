@@ -273,7 +273,7 @@ class LogEntry:
         if self.kind_version.version == "0.0.2":
             # Rekor V2
             root_hash = self.inclusion_proof.root_hash.encode()
-         else:
+        else:
             # Rekor V1
             root_hash = bytes.fromhex(self.inclusion_proof.root_hash)
 
