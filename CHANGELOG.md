@@ -25,6 +25,11 @@ All versions prior to 0.9.0 are untracked.
 * `--trust-config` now requires a file with SigningConfig v0.2, and is able to fully
   configure the used Sigstore instance [#1358]/(https://github.com/sigstore/sigstore-python/pull/1358)
 
+### Added
+
+* Added `LogEntry.kind_version`, which is now parsed earlier upon receipt from the rekor API,
+  either from the root of the response, or from the reponse's inner base64-encoded JSON `body`.
+
 ## [3.6.2]
 
 ### Fixed
