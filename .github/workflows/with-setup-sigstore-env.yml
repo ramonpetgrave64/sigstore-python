@@ -25,4 +25,4 @@ jobs:
             cache-dependency-path: pyproject.toml
         - env:
             TEST_SETUP_SIGSTORE_ENV: true 
-          run: pytest -k test_sign_prehashed_rekorv2
+          run: make test TEST_ARGS="-k test_sign_prehashed_rekorv2"
