@@ -250,8 +250,6 @@ class TestSignWithTSA:
         )
 
 
-@pytest.mark.staging
-@pytest.mark.ambient_oidc
 def test_sign_prehashed_rekorv2(v2_trust_config, staging) -> None:
     _, _, identity = staging
     trust_config = v2_trust_config
