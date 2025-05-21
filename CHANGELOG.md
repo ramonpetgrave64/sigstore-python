@@ -10,10 +10,16 @@ All versions prior to 0.9.0 are untracked.
 
 ### Added
 
+* Added `LogEntry.kind_version`, which is now parsed earlier upon receipt from the rekor API,
+  either from the root of the response, or from the reponse's inner base64-encoded JSON `body`.
+  [#1370](https://github.com/sigstore/sigstore-python/pull/1370)
+
 * Added support for ed25519 keys.
   [#1377](https://github.com/sigstore/sigstore-python/pull/1377)
 
 ### Fixed
+
+* Avoid pydantic's instantiation issues with `TransparencyLogEntry` when `InclusionPromise` is not present.
 
 * TSA: Changed the Timestamp Authority requests to explicitly use sha256 for message digests.
   [#1373](https://github.com/sigstore/sigstore-python/pull/1373)
@@ -24,6 +30,11 @@ All versions prior to 0.9.0 are untracked.
 
 * API: Make Rekor APIs compatible with Rekor v2 by removing trailing slashes
   from endpoints ([#1366](https://github.com/sigstore/sigstore-python/pull/1366))
+
+* Verify: verify that all established times (timestamps or the log integration time)
+  are within the signing certificate validity period. At least one established time is
+  still required.
+  [#1381](https://github.com/sigstore/sigstore-python/pull/1381)
 
 * CI: Timestamp Authority tests use latest release, not latest tag, of
   [sigstore/timestamp-authority](https://github.com/sigstore/timestamp-authority)
