@@ -70,6 +70,8 @@ from sigstore.oidc import ExpiredIdentity, IdentityToken
 
 _logger = logging.getLogger(__name__)
 
+SUPPORTED_REKOR_MAJOR_API_VERSIONS = [1, 2]
+
 
 class Signer:
     """
@@ -320,9 +322,26 @@ class SigningContext:
         @api private
         """
         signing_config = trust_config.signing_config
+        tlog_service = next(
+            (
+                service
+                for service in signing_config.get_tlog_services()
+                if service.major_api_version in SUPPORTED_REKOR_MAJOR_API_VERSIONS
+            ),
+            None,
+        )
+        if tlog_service is None:
+            raise ValueError(
+                "No supported rekor version supplied. Supporting {SUPPORTED_REKOR_MAJOR_API_VERSIONS}"
+            )
+        if tlog_service.major_api_version == 1:
+            rekor_client = RekorClient(tlog_service.url)
+        else:
+            rekor_client = RekorClient(tlog_service.url)
+
         return cls(
             fulcio=FulcioClient(signing_config.get_fulcio_url()),
-            rekor=RekorClient(signing_config.get_tlog_urls()[0]),
+            rekor=rekor_client,
             trusted_root=trust_config.trusted_root,
             tsa_clients=[
                 TimestampAuthorityClient(url) for url in signing_config.get_tsa_urls()

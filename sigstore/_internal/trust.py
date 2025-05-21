@@ -373,6 +373,27 @@ class SigningConfig:
             raise Error("No valid Rekor transparency log found in signing config")
         return [url]
 
+    @staticmethod
+    def _is_valid_service(self, service: Service) -> bool:
+        """
+        Returns whether the given `Service` is valid.
+        """
+        return _is_timerange_valid(service.valid_for, allow_expired=False)
+
+    def get_tlog_services(self) -> list[Service]:
+        """
+        Returns a `Service` for each in the signing config, sorted by major version from highest to lowest.
+        """
+        return sorted(
+            [
+                service
+                for service in self._inner.rekor_tlog_urls
+                if self._is_valid_service(service)
+            ],
+            key=lambda service: service.major_api_version,
+            reverse=True,
+        )
+
     def get_fulcio_url(self) -> str:
         """
         Returns url for the fulcio instance that client should use to get a
