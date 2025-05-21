@@ -23,5 +23,8 @@ jobs:
             allow-prereleases: true
             cache: "pip"
             cache-dependency-path: pyproject.toml
-        - run: |
-            TEST_SETUP_SIGSTORE_ENV=1 make test TEST_ARGS="-k test_sign_prehashed_rekorv2"
+        - env:
+            TEST_SETUP_SIGSTORE_ENV: "nonempty value"
+          run: |
+            export TEST_SETUP_SIGSTORE_ENV=${{ env.TEST_SETUP_SIGSTORE_ENV }}
+            make test TEST_ARGS="-k test_sign_prehashed_rekorv2 -rs" | tee output
