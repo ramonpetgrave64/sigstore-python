@@ -230,8 +230,6 @@ def has_setup_sigstore_env() -> bool:
     that has the sigstore services in containers available for us to use.
     """
     val = bool(os.getenv("TEST_SETUP_SIGSTORE_ENV", False))
-    if not val:
-        _logger.info("TEST_SETUP_SIGSTORE_ENV unset")
     return val
 
 
