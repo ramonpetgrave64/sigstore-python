@@ -43,6 +43,9 @@ All versions prior to 0.9.0 are untracked.
 * `--trust-config` now requires a file with SigningConfig v0.2, and is able to fully
   configure the used Sigstore instance [#1358]/(https://github.com/sigstore/sigstore-python/pull/1358)
 
+* Refactored the code for creating requests to rekor into common methods for both the original `RekorClient`
+  and the new `RekorV2Client`.
+
 ## [3.6.2]
 
 ### Fixed
