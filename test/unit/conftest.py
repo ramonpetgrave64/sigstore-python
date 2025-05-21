@@ -15,6 +15,7 @@
 from __future__ import annotations
 
 import base64
+import logging
 import os
 import re
 from collections import defaultdict
@@ -46,6 +47,7 @@ from sigstore.verify.verifier import Verifier
 _TUF_ASSETS = (Path(__file__).parent.parent / "assets" / "staging-tuf").resolve()
 assert _TUF_ASSETS.is_dir()
 
+_logger = logging.getLogger(__name__)
 
 @pytest.fixture
 def x509_testcase(asset):
@@ -227,7 +229,10 @@ def has_setup_sigstore_env() -> bool:
     This means we are using the sigstore/scaffolding/actions/setup-sigstore-env
     that has the sigstore services in containers available for us to use.
     """
-    return bool(os.getenv("TEST_SETUP_SIGSTORE_ENV", False))
+    val = bool(os.getenv("TEST_SETUP_SIGSTORE_ENV", False))
+    if not val:
+        _logger.info("TEST_SETUP_SIGSTORE_ENV unset")
+    return val
 
 
 def get_trust_config_filenames() -> Iterable[str]:
