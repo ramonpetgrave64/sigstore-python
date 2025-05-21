@@ -374,7 +374,7 @@ class SigningConfig:
         return [url]
 
     @staticmethod
-    def _is_valid_service(self, service: Service) -> bool:
+    def _is_valid_service(service: Service) -> bool:
         """
         Returns whether the given `Service` is valid.
         """

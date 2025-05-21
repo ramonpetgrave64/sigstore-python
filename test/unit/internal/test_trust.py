@@ -15,11 +15,16 @@
 
 import os
 from datetime import datetime, timedelta, timezone
+from dateutil.tz import tzutc
 
 import pytest
 from cryptography.hazmat.primitives.serialization import Encoding, PublicFormat
 from cryptography.x509 import load_pem_x509_certificate
 from sigstore_protobuf_specs.dev.sigstore.common.v1 import TimeRange
+
+from sigstore_protobuf_specs.dev.sigstore.trustroot.v1 import (
+    Service,
+)
 
 from sigstore._internal.trust import (
     CertificateAuthority,
@@ -59,6 +64,22 @@ class TestSigningcconfig:
         assert signing_config.get_fulcio_url() == "https://fulcio.example.com"
         assert signing_config.get_oidc_url() == "https://oauth2.example.com/auth"
         assert signing_config.get_tlog_urls() == ["https://rekor.example.com"]
+        assert signing_config.get_tlog_services() == [
+            Service(
+                url="https://rekor-v2.example.com",
+                major_api_version=2,
+                valid_for=TimeRange(
+                    start=datetime(2021, 1, 12, 11, 53, 27, tzinfo=tzutc())
+                ),
+            ),
+            Service(
+                url="https://rekor.example.com",
+                major_api_version=1,
+                valid_for=TimeRange(
+                    start=datetime(2021, 1, 12, 11, 53, 27, tzinfo=tzutc())
+                ),
+            )
+        ]
         assert signing_config.get_tsa_urls() == [
             "https://timestamp.example.com/api/v1/timestamp"
         ]
