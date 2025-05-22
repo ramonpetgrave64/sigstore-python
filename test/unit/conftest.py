@@ -242,9 +242,11 @@ def staging(
             )
 
         def verifier():
-            return Verifier(trusted_root=ClientTrustConfig.from_json(
-                asset("tsa/trust_config.rekorv2_alpha.json").read_text()
-            ).trusted_root)
+            return Verifier(
+                trusted_root=ClientTrustConfig.from_json(
+                    asset("tsa/trust_config.rekorv2_alpha.json").read_text()
+                ).trusted_root
+            )
 
     # Detect env variable for local interactive tests.
     token = os.getenv("SIGSTORE_IDENTITY_TOKEN_staging")
