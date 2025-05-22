@@ -14,6 +14,7 @@
 
 import os
 from pathlib import Path
+from typing import Callable
 
 import pytest
 from id import (
@@ -29,7 +30,7 @@ assert _ASSETS.is_dir()
 
 
 @pytest.fixture
-def asset():
+def asset() -> Callable[[str], Path]:
     def _asset(name: str) -> Path:
         return _ASSETS / name
 

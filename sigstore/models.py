@@ -557,6 +557,8 @@ class Bundle:
                 not log_entry.inclusion_promise
                 and not self._inner.verification_material.timestamp_verification_data.rfc3161_timestamps
             ):
+                from pprint import pprint
+                pprint(json.loads(self.to_json()))
                 raise InvalidBundle(
                     "bundle must contain an inclusion promise or signed timestamp(s)"
                 )

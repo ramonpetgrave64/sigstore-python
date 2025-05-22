@@ -214,17 +214,37 @@ def sign_ctx_and_ident_for_env(
     return ctx_cls, IdentityToken(token)
 
 
-@pytest.fixture
-def staging() -> tuple[type[SigningContext], type[Verifier], IdentityToken]:
+@pytest.fixture(params=[True, False])
+def staging(
+    asset, request
+) -> tuple[type[SigningContext], type[Verifier], IdentityToken]:
     """
     Returns a SigningContext, Verifier, and IdentityToken for the staging environment.
     The SigningContext and Verifier are both behind callables so that they may be lazily evaluated.
+
+    This produces alternate return values when the param is True or False.
+    If True: return from built-in `.staging()` methods.
+    If False: return from a trust_config file.
     """
+    if request.param is True:
 
-    def signer():
-        return SigningContext.from_trust_config(ClientTrustConfig.staging())
+        def signer():
+            return SigningContext.from_trust_config(ClientTrustConfig.staging())
 
-    verifier = Verifier.staging
+        verifier = Verifier.staging
+    else:
+
+        def signer():
+            return SigningContext.from_trust_config(
+                ClientTrustConfig.from_json(
+                    asset("tsa/trust_config.rekorv2_alpha.json").read_text()
+                )
+            )
+
+        def verifier():
+            return Verifier(trusted_root=ClientTrustConfig.from_json(
+                asset("tsa/trust_config.rekorv2_alpha.json").read_text()
+            ).trusted_root)
 
     # Detect env variable for local interactive tests.
     token = os.getenv("SIGSTORE_IDENTITY_TOKEN_staging")

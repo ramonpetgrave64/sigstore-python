@@ -49,7 +49,6 @@ import rekor_types
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.asymmetric import ec
 from cryptography.x509.oid import NameOID
-from sigstore._internal.rekor.client_v2 import RekorV2Client
 from sigstore_protobuf_specs.dev.sigstore.common.v1 import (
     HashOutput,
     MessageSignature,
@@ -62,6 +61,7 @@ from sigstore._internal.fulcio import (
     FulcioClient,
 )
 from sigstore._internal.rekor.client import RekorClient
+from sigstore._internal.rekor.client_v2 import RekorV2Client
 from sigstore._internal.sct import verify_sct
 from sigstore._internal.timestamp import TimestampAuthorityClient, TimestampError
 from sigstore._internal.trust import ClientTrustConfig, KeyringPurpose, TrustedRoot

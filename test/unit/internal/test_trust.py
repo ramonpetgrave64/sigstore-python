@@ -15,13 +15,12 @@
 
 import os
 from datetime import datetime, timedelta, timezone
-from dateutil.tz import tzutc
 
 import pytest
 from cryptography.hazmat.primitives.serialization import Encoding, PublicFormat
 from cryptography.x509 import load_pem_x509_certificate
+from dateutil.tz import tzutc
 from sigstore_protobuf_specs.dev.sigstore.common.v1 import TimeRange
-
 from sigstore_protobuf_specs.dev.sigstore.trustroot.v1 import (
     Service,
 )
@@ -78,7 +77,7 @@ class TestSigningcconfig:
                 valid_for=TimeRange(
                     start=datetime(2021, 1, 12, 11, 53, 27, tzinfo=tzutc())
                 ),
-            )
+            ),
         ]
         assert signing_config.get_tsa_urls() == [
             "https://timestamp.example.com/api/v1/timestamp"

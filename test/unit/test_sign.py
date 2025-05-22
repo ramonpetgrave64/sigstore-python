@@ -168,11 +168,11 @@ def test_sign_dsse(staging):
 @pytest.mark.ambient_oidc
 @pytest.mark.timestamp_authority
 class TestSignWithTSA:
-    @pytest.fixture(params=["tsa/trust_config.json", "tsa/trust_config.rekorv2_alpha.json"])
+    @pytest.fixture(
+        params=["tsa/trust_config.json", "tsa/trust_config.rekorv2_alpha.json"]
+    )
     def sig_ctx(self, asset, tsa_url, request) -> SigningContext:
-        trust_config = ClientTrustConfig.from_json(
-            asset(request.param).read_text()
-        )
+        trust_config = ClientTrustConfig.from_json(asset(request.param).read_text())
 
         trust_config._inner.signing_config.tsa_urls[0].url = tsa_url
 

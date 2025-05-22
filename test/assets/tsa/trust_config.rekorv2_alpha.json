@@ -4,17 +4,17 @@
     "mediaType": "application/vnd.dev.sigstore.trustedroot+json;version=0.1",
     "tlogs": [
       {
-        "baseUrl": "https://rekor.sigstage.dev",
+        "baseUrl": "https://log2025-alpha1.rekor.sigstage.dev",
         "hashAlgorithm": "SHA2_256",
         "publicKey": {
-          "rawBytes": "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEDODRU688UYGuy54mNUlaEBiQdTE9nYLr0lg6RXowI/QV/RE1azBn4Eg5/2uTOMbhB1/gfcHzijzFi9Tk+g1Prg==",
-          "keyDetails": "PKIX_ECDSA_P256_SHA_256",
+          "rawBytes": "MCowBQYDK2VwAyEAPn+AREHoBaZ7wgS1zBqpxmLSGnyhxXj4lFxSdWVB8o8=",
+          "keyDetails": "PKIX_ED25519",
           "validFor": {
-            "start": "2021-01-12T11:53:27Z"
+            "start": "2025-04-16T00:00:00Z"
           }
         },
         "logId": {
-          "keyId": "0y8wo8MtY5wrdiIFohx7sHeI5oKDpK5vQhGHI6G+pJY="
+          "keyId": "RycrnT/11WQ15JtgBXeYVLlFYMtbAka7+JnxUQaOX5E="
         }
       }
     ],
@@ -131,7 +131,7 @@
     ],
     "tsaUrls": [
       {
-        "url": "placeholder",
+        "url": "https://timestamp.sigstage.dev/api/v1/timestamp",
         "majorApiVersion": 1,
         "validFor": {
           "start": "2024-11-07T14:59:40.000Z"

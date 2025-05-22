@@ -17,8 +17,8 @@ from sigstore._internal.rekor.client_v2 import (
     v2,
     v2_intoto,
 )
-from sigstore.models import rekor_v1
 from sigstore._utils import sha256_digest
+from sigstore.models import rekor_v1
 from sigstore.sign import ec
 
 ALPHA_REKOR_V2_URL = "https://log2025-alpha1.rekor.sigstage.dev"
@@ -118,9 +118,7 @@ def sample_dsse_create_entry_request(
     Returns a sample `CreateEntryRequest` for for dsse.
     """
     envelope, cert = sample_dsse_request_materials
-    return RekorV2Client._build_dsse_request(
-        envelope=envelope, certificate=cert
-    )
+    return RekorV2Client._build_dsse_request(envelope=envelope, certificate=cert)
 
 
 @pytest.fixture(
