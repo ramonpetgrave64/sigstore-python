@@ -212,20 +212,18 @@ def test_build_dsse_create_entry_request(sample_dsse_request_materials):
 
 
 @pytest.mark.ambient_oidc
-def test_create_entry_hashed_rekord(sample_hashed_rekord_create_entry_request, client):
+def test_create_entry(
+    sample_hashed_rekord_create_entry_request,
+    sample_dsse_create_entry_request,
+    client,
+):
     """
-    Sends a hashed rekord request to RekorV2 and ensure's the response is parseable to a `LogEntry` and a `TransparencyLogEntry`.
+    Sends a request to RekorV2 and ensures the response is parseable to a `LogEntry` and a `TransparencyLogEntry`.
     """
-    log_entry = client.create_entry(sample_hashed_rekord_create_entry_request)
-    assert isinstance(log_entry, LogEntry)
-    assert isinstance(log_entry._to_rekor(), rekor_v1.TransparencyLogEntry)
-
-
-@pytest.mark.ambient_oidc
-def test_create_entry_dsse(sample_dsse_create_entry_request, client):
-    """
-    Sends a dsse request to RekorV2 and ensure's the response is parseable to a `LogEntry` and a `TransparencyLogEntry`.
-    """
-    log_entry = client.create_entry(sample_dsse_create_entry_request)
-    assert isinstance(log_entry, LogEntry)
-    assert isinstance(log_entry._to_rekor(), rekor_v1.TransparencyLogEntry)
+    for request in [
+        sample_hashed_rekord_create_entry_request,
+        sample_dsse_create_entry_request,
+    ]:
+        log_entry = client.create_entry(request)
+        assert isinstance(log_entry, LogEntry)
+        assert isinstance(log_entry._to_rekor(), rekor_v1.TransparencyLogEntry)
