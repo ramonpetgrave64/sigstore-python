@@ -106,21 +106,21 @@ class RekorV2Client(RekorLogSubmitter):
     @classmethod
     def _build_hashed_rekord_request(
         cls,
-        artifact_hashed_input: Hashed,
-        artifact_signature: bytes,
-        signing_certificate: Certificate,
+        hashed_input: Hashed,
+        signature: bytes,
+        certificate: Certificate,
     ) -> v2.CreateEntryRequest:
         """
         Construct a hashed rekord request to submit to Rekor.
         """
         return v2.CreateEntryRequest(
             hashed_rekord_request_v0_0_2=v2.HashedRekordRequestV002(
-                digest=artifact_hashed_input.digest,
+                digest=hashed_input.digest,
                 signature=v2.Signature(
-                    content=artifact_signature,
+                    content=signature,
                     verifier=v2.Verifier(
                         x509_certificate=common_v1.X509Certificate(
-                            raw_bytes=signing_certificate.public_bytes(
+                            raw_bytes=certificate.public_bytes(
                                 encoding=serialization.Encoding.DER
                             )
                         ),
@@ -132,7 +132,7 @@ class RekorV2Client(RekorLogSubmitter):
 
     @classmethod
     def _build_dsse_request(
-        cls, envelope: Envelope, signing_certificate: Certificate
+        cls, envelope: Envelope, certificate: Certificate
     ) -> v2.CreateEntryRequest:
         """
         Construct a dsse request to submit to Rekor.
@@ -153,7 +153,7 @@ class RekorV2Client(RekorLogSubmitter):
                 verifiers=[
                     v2.Verifier(
                         x509_certificate=common_v1.X509Certificate(
-                            raw_bytes=signing_certificate.public_bytes(
+                            raw_bytes=certificate.public_bytes(
                                 encoding=serialization.Encoding.DER
                             )
                         ),

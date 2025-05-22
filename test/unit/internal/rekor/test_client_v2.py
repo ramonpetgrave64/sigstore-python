@@ -17,8 +17,7 @@ from sigstore._internal.rekor.client_v2 import (
     v2,
     v2_intoto,
 )
-
-# from sigstore.models import rekor_v1
+from sigstore.models import rekor_v1
 from sigstore._utils import sha256_digest
 from sigstore.sign import ec
 
@@ -105,9 +104,9 @@ def sample_hashed_rekord_create_entry_request(
     """
     hashed_input, signature, cert = sample_hashed_rekord_request_materials
     return RekorV2Client._build_hashed_rekord_request(
-        artifact_hashed_input=hashed_input,
-        artifact_signature=signature,
-        signing_certificate=cert,
+        hashed_input=hashed_input,
+        signature=signature,
+        certificate=cert,
     )
 
 
@@ -120,7 +119,7 @@ def sample_dsse_create_entry_request(
     """
     envelope, cert = sample_dsse_request_materials
     return RekorV2Client._build_dsse_request(
-        envelope=envelope, signing_certificate=cert
+        envelope=envelope, certificate=cert
     )
 
 
@@ -160,9 +159,9 @@ def test_build_hashed_rekord_create_entry_request(
         )
     )
     actual_request = RekorV2Client._build_hashed_rekord_request(
-        artifact_hashed_input=hashed_input,
-        artifact_signature=signature,
-        signing_certificate=cert,
+        hashed_input=hashed_input,
+        signature=signature,
+        certificate=cert,
     )
     assert expected_request == actual_request
 
@@ -197,7 +196,7 @@ def test_build_dsse_create_entry_request(sample_dsse_request_materials):
         )
     )
     actual_request = RekorV2Client._build_dsse_request(
-        envelope=envelope, signing_certificate=cert
+        envelope=envelope, certificate=cert
     )
     assert expected_request == actual_request
 
@@ -209,5 +208,4 @@ def test_create_entry(sample_create_entry_request, client):
     """
     log_entry = client.create_entry(sample_create_entry_request)
     assert isinstance(log_entry, LogEntry)
-    # TODO: Pending https://github.com/sigstore/sigstore-python/pull/1370
-    # assert isinstance(log_entry._to_rekor(), rekor_v1.TransparencyLogEntry)
+    assert isinstance(log_entry._to_rekor(), rekor_v1.TransparencyLogEntry)

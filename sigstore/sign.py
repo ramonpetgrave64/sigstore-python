@@ -49,6 +49,7 @@ import rekor_types
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.asymmetric import ec
 from cryptography.x509.oid import NameOID
+from sigstore._internal.rekor.client_v2 import RekorV2Client
 from sigstore_protobuf_specs.dev.sigstore.common.v1 import (
     HashOutput,
     MessageSignature,
@@ -308,14 +309,14 @@ class SigningContext:
             ),
             None,
         )
-        if tlog_service is None:
+        if tlog_service.major_api_version == 1:
+            rekor_client = RekorClient(tlog_service.url)
+        elif tlog_service.major_api_version == 2:
+            rekor_client = RekorV2Client(tlog_service.url)
+        else:
             raise ValueError(
                 "No supported rekor version supplied. Supporting {SUPPORTED_REKOR_MAJOR_API_VERSIONS}"
             )
-        if tlog_service.major_api_version == 1:
-            rekor_client = RekorClient(tlog_service.url)
-        else:
-            rekor_client = RekorClient(tlog_service.url)
 
         return cls(
             fulcio=FulcioClient(signing_config.get_fulcio_url()),
