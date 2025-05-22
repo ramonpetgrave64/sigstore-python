@@ -25,7 +25,6 @@ from typing import cast
 
 import rekor_types
 from cryptography.exceptions import InvalidSignature
-from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import ec
 from cryptography.x509 import ExtendedKeyUsage, KeyUsage
 from cryptography.x509.oid import ExtendedKeyUsageOID
@@ -38,9 +37,10 @@ from OpenSSL.crypto import (
 )
 from pydantic import ValidationError
 from rfc3161_client import TimeStampResponse, VerifierBuilder
+from cryptography.hazmat.primitives import serialization
 from rfc3161_client import VerificationError as Rfc3161VerificationError
 
-from sigstore import dsse, models
+from sigstore import dsse
 from sigstore._internal.rekor import _hashedrekord_from_parts
 from sigstore._internal.rekor.client import RekorClient
 from sigstore._internal.rekor.v2_types.dev.sigstore.common import v1
@@ -101,8 +101,9 @@ class Verifier:
         the verifier uses the Trusted Root in the local TUF cache. If `False`,
         a TUF repository refresh is attempted.
         """
+        config = ClientTrustConfig.production(offline=offline)
         return cls(
-            trusted_root=TrustedRoot.production(offline=offline),
+            trusted_root=config.trusted_root,
         )
 
     @classmethod
@@ -114,19 +115,9 @@ class Verifier:
         the verifier uses the Trusted Root in the local TUF cache. If `False`,
         a TUF repository refresh is attempted.
         """
+        config = ClientTrustConfig.staging(offline=offline)
         return cls(
-            trusted_root=TrustedRoot.staging(offline=offline),
-        )
-
-    @classmethod
-    def _from_trust_config(cls, trust_config: ClientTrustConfig) -> Verifier:
-        """
-        Create a `Verifier` from the given `ClientTrustConfig`.
-
-        @api private
-        """
-        return cls(
-            trusted_root=trust_config.trusted_root,
+            trusted_root=config.trusted_root,
         )
 
     def _verify_signed_timestamp(
@@ -456,7 +447,8 @@ class Verifier:
                     "expected SHA256 payload hash in DSSE log entry"
                 )
             if entry_body.spec.dsse_v0_0_2.payload_hash.digest != payload_hash:
-                raise VerificationError("log entry payload hash does not match bundle")
+                raise VerificationError(
+                    "log entry payload hash does not match bundle")
 
             signatures = [
                 v2.Signature(
@@ -473,7 +465,8 @@ class Verifier:
                 for signature in envelope._inner.signatures
             ]
             if signatures != entry_body.spec.dsse_v0_0_2.signatures:
-                raise VerificationError("log entry signatures do not match bundle")
+                raise VerificationError(
+                    "log entry signatures do not match bundle")
         else:
             try:
                 entry_body = rekor_types.Dsse.model_validate_json(
@@ -493,7 +486,8 @@ class Verifier:
                 )
             # type: ignore[union-attr]
             if payload_hash != entry_body.spec.root.payload_hash.value:
-                raise VerificationError("log entry payload hash does not match bundle")
+                raise VerificationError(
+                    "log entry payload hash does not match bundle")
 
             # NOTE: Like `dsse._verify`: multiple signatures would be frivolous here,
             # but we handle them just in case the signer has somehow produced multiple
@@ -501,12 +495,14 @@ class Verifier:
             signatures = [
                 rekor_types.dsse.Signature(
                     signature=base64.b64encode(signature.sig).decode(),
-                    verifier=base64_encode_pem_cert(bundle.signing_certificate),
+                    verifier=base64_encode_pem_cert(
+                        bundle.signing_certificate),
                 )
                 for signature in envelope._inner.signatures
             ]
             if signatures != entry_body.spec.root.signatures:
-                raise VerificationError("log entry signatures do not match bundle")
+                raise VerificationError(
+                    "log entry signatures do not match bundle")
 
         return (envelope._inner.payload_type, envelope._inner.payload)
 

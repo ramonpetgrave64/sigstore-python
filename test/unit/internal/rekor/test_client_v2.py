@@ -43,7 +43,7 @@ def client(request) -> RekorV2Client:
     return RekorV2Client(base_url=request.param)
 
 
-@pytest.fixture()
+@pytest.fixture
 def sample_signer(staging):
     """
     Returns a `Signer`.
@@ -53,7 +53,7 @@ def sample_signer(staging):
         return signer
 
 
-@pytest.fixture()
+@pytest.fixture
 def sample_hashed_rekord_request_materials(
     sample_signer,
 ) -> tuple[Hashed, bytes, Certificate]:
@@ -68,7 +68,7 @@ def sample_hashed_rekord_request_materials(
     return hashed_input, signature, cert
 
 
-@pytest.fixture()
+@pytest.fixture
 def sample_dsse_request_materials(sample_signer) -> tuple[dsse.Envelope, Certificate]:
     """
     Creates materials needed for `RekorV2Client._build_dsse_create_entry_request`.
@@ -95,7 +95,7 @@ def sample_dsse_request_materials(sample_signer) -> tuple[dsse.Envelope, Certifi
     return envelope, cert
 
 
-@pytest.fixture()
+@pytest.fixture
 def sample_hashed_rekord_create_entry_request(
     sample_hashed_rekord_request_materials,
 ) -> v2.CreateEntryRequest:
@@ -110,7 +110,7 @@ def sample_hashed_rekord_create_entry_request(
     )
 
 
-@pytest.fixture()
+@pytest.fixture
 def sample_dsse_create_entry_request(
     sample_dsse_request_materials,
 ) -> v2.CreateEntryRequest:
@@ -121,17 +121,17 @@ def sample_dsse_create_entry_request(
     return RekorV2Client._build_dsse_request(envelope=envelope, certificate=cert)
 
 
-@pytest.fixture(
-    params=[
-        sample_hashed_rekord_create_entry_request,
-        sample_dsse_create_entry_request,
-    ]
-)
-def sample_create_entry_request(request) -> v2.CreateEntryRequest:
-    """
-    Returns a sample `CreateEntryRequest`, for each of the the params in the supplied fixture.
-    """
-    return request.getfixturevalue(request.param.__name__)
+# @pytest.fixture(
+#     params=[
+#         sample_hashed_rekord_create_entry_request.__name__,
+#         sample_dsse_create_entry_request.__name__,
+#     ]
+# )
+# def sample_create_entry_request(request) -> v2.CreateEntryRequest:
+#     """
+#     Returns a sample `CreateEntryRequest`, for each of the the params in the supplied fixture.
+#     """
+#     return request.getfixturevalue(request.param)
 
 
 @pytest.mark.ambient_oidc
@@ -199,11 +199,33 @@ def test_build_dsse_create_entry_request(sample_dsse_request_materials):
     assert expected_request == actual_request
 
 
+# @pytest.mark.ambient_oidc
+# @pytest.mark.staging
+# def test_create_entry(request, sample_create_entry_request, client):
+#     """
+#     Sends a request to RekorV2 and ensure's the response is parseable to a `LogEntry` and a `TransparencyLogEntry`.
+#     """
+#     entry_request = request.getfixturevalue(sample_create_entry_request)
+#     log_entry = client.create_entry(entry_request)
+#     assert isinstance(log_entry, LogEntry)
+#     assert isinstance(log_entry._to_rekor(), rekor_v1.TransparencyLogEntry)
+
+
 @pytest.mark.ambient_oidc
-def test_create_entry(sample_create_entry_request, client):
+def test_create_entry_hashed_rekord(sample_hashed_rekord_create_entry_request, client):
     """
-    Sends a request to RekorV2 and ensure's the response is parseable to a `LogEntry` and a `TransparencyLogEntry`.
+    Sends a hashed rekord request to RekorV2 and ensure's the response is parseable to a `LogEntry` and a `TransparencyLogEntry`.
     """
-    log_entry = client.create_entry(sample_create_entry_request)
+    log_entry = client.create_entry(sample_hashed_rekord_create_entry_request)
+    assert isinstance(log_entry, LogEntry)
+    assert isinstance(log_entry._to_rekor(), rekor_v1.TransparencyLogEntry)
+
+
+@pytest.mark.ambient_oidc
+def test_create_entry_dsse(sample_dsse_create_entry_request, client):
+    """
+    Sends a dsse request to RekorV2 and ensure's the response is parseable to a `LogEntry` and a `TransparencyLogEntry`.
+    """
+    log_entry = client.create_entry(sample_dsse_create_entry_request)
     assert isinstance(log_entry, LogEntry)
     assert isinstance(log_entry._to_rekor(), rekor_v1.TransparencyLogEntry)
