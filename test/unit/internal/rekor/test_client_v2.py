@@ -10,8 +10,6 @@ from id import (
 from sigstore import dsse
 from sigstore._internal.rekor.client_v2 import (
     DEFAULT_KEY_DETAILS,
-    DEFAULT_REKOR_URL,
-    STAGING_REKOR_URL,
     Certificate,
     Hashed,
     LogEntry,
@@ -36,9 +34,9 @@ LOCAL_REKOR_V2_URL = "http://localhost:3000"
 @pytest.fixture(
     params=[
         ALPHA_REKOR_V2_URL,
-        pytest.param(STAGING_REKOR_URL, marks=pytest.mark.xfail),
-        pytest.param(DEFAULT_REKOR_URL, marks=pytest.mark.xfail),
-        pytest.param(LOCAL_REKOR_V2_URL, marks=pytest.mark.xfail),
+        # pytest.param(STAGING_REKOR_URL, marks=pytest.mark.xfail),
+        # pytest.param(DEFAULT_REKOR_URL, marks=pytest.mark.xfail),
+        # pytest.param(LOCAL_REKOR_V2_URL, marks=pytest.mark.xfail),
     ]
 )
 def client(request) -> RekorV2Client:
@@ -59,7 +57,7 @@ def client(request) -> RekorV2Client:
 #         return signer
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def sample_cert_and_private_key() -> tuple[Certificate, ec.EllipticCurvePrivateKey]:
     """
     Returns a sample Certificate and ec.EllipticCurvePrivateKey.
@@ -76,7 +74,7 @@ def sample_cert_and_private_key() -> tuple[Certificate, ec.EllipticCurvePrivateK
         return signer._signing_cert(), signer._private_key
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def sample_hashed_rekord_request_materials(
     sample_cert_and_private_key,
 ) -> tuple[Hashed, bytes, Certificate]:
@@ -91,7 +89,7 @@ def sample_hashed_rekord_request_materials(
     return hashed_input, signature, cert
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def sample_dsse_request_materials(
     sample_cert_and_private_key,
 ) -> tuple[dsse.Envelope, Certificate]:
@@ -120,7 +118,7 @@ def sample_dsse_request_materials(
     return envelope, cert
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def sample_hashed_rekord_create_entry_request(
     sample_hashed_rekord_request_materials,
 ) -> v2.CreateEntryRequest:
@@ -135,7 +133,7 @@ def sample_hashed_rekord_create_entry_request(
     )
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def sample_dsse_create_entry_request(
     sample_dsse_request_materials,
 ) -> v2.CreateEntryRequest:
@@ -147,10 +145,11 @@ def sample_dsse_create_entry_request(
 
 
 @pytest.fixture(
+    scope="session",
     params=[
         sample_hashed_rekord_create_entry_request,
         sample_dsse_create_entry_request,
-    ]
+    ],
 )
 def sample_create_entry_request(request) -> v2.CreateEntryRequest:
     """
@@ -225,8 +224,7 @@ def test_build_dsse_create_entry_request(sample_dsse_request_materials):
 
 
 @pytest.mark.ambient_oidc
-@pytest.mark.staging
-def test_create_entry(request, sample_create_entry_request, client):
+def test_create_entry(sample_create_entry_request, client):
     """
     Sends a request to RekorV2 and ensure's the response is parseable to a `LogEntry` and a `TransparencyLogEntry`.
     """
