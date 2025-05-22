@@ -42,7 +42,7 @@ STAGING_REKOR_URL = "https://rekor.sigstage.dev"
 
 # TODO: Link to merged documenation.
 # See https://github.com/sigstore/rekor-tiles/pull/255/files#diff-eb568acf84d583e4d3734b07773e96912277776bad39c560392aa33ea2cf2210R196
-CREATE_ENTRIES_TIMEOUT_SECONDS = 10
+CREATE_ENTRIES_TIMEOUT_SECONDS = 20
 
 DEFAULT_KEY_DETAILS = common_v1.PublicKeyDetails.PKIX_ECDSA_P384_SHA_256
 
