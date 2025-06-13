@@ -19,11 +19,8 @@ import pytest
 from sigstore import dsse
 from sigstore._internal.rekor.client_v2 import (
     LogEntry,
-    RekorV2Client,
 )
 from sigstore.models import rekor_v1
-
-ALPHA_REKOR_V2_URL = "https://log2025-alpha1.rekor.sigstage.dev"
 
 
 @pytest.mark.staging
@@ -35,7 +32,6 @@ def test_rekor_v2_create_entry_dsse(preprod):
 
     # Hack to run Signer.sign() with staging rekor v2
     sign_ctx = sign_ctx_cls()
-    sign_ctx._rekor = RekorV2Client(ALPHA_REKOR_V2_URL)
 
     stmt = (
         dsse.StatementBuilder()
@@ -71,7 +67,6 @@ def test_rekor_v2_create_entry_hashed_rekord(preprod):
 
     # Hack to run Signer.sign() with staging rekor v2
     sign_ctx = sign_ctx_cls()
-    sign_ctx._rekor = RekorV2Client(ALPHA_REKOR_V2_URL)
 
     with sign_ctx.signer(identity) as signer:
         bundle = signer.sign_artifact(b"")
