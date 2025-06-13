@@ -27,7 +27,7 @@ from sigstore.hashes import Hashed
 from sigstore.sign import SigningContext
 from sigstore.verify.policy import UnsafeNoOp
 
-from .conftest import LOCAL
+from .conftest import LOCAL, make_env_fixture
 
 
 @pytest.mark.parametrize("env", ["staging", "production", LOCAL])
@@ -69,6 +69,12 @@ def test_sct_verify_keyring_lookup_error(sign_ctx_and_ident_for_env, monkeypatch
     with pytest.raises(VerificationError, match=r"SCT verify failed:"):
         with ctx.signer(identity) as signer:
             signer.sign_artifact(payload)
+
+@make_env_fixture(staging=True, local=False)
+def test_fixt(env):
+    ctx, identity = env
+    assert identity is not None
+
 
 
 @pytest.mark.parametrize("env", ["staging", "production", LOCAL])

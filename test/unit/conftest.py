@@ -16,13 +16,14 @@ from __future__ import annotations
 
 import base64
 import datetime
+from functools import wraps
 import os
 import re
 from collections import defaultdict
 from collections.abc import Iterator
 from io import BytesIO
 from pathlib import Path
-from typing import Callable
+from typing import Callable, Optional
 from urllib.parse import urlparse
 
 import jwt
@@ -284,6 +285,79 @@ def preprod(request) -> tuple[type[SigningContext], type[Verifier], IdentityToke
         token = detect_credential(TEST_CLIENT_ID)
 
     return signer, verifier, IdentityToken(token)
+
+
+def make_env_fixture(
+    production: bool = False,
+    staging: bool = True,
+    local: bool = True,
+    custom_trust_config: Optional[ClientTrustConfig] = None,
+) -> pytest.FixtureFunctionMarker:
+    params: list[pytest.ParameterSet] = []
+    if production:
+        token = os.getenv("SIGSTORE_IDENTITY_TOKEN_production")
+        trust_config_func = ClientTrustConfig.production
+        params.append(pytest.param((trust_config_func, token), id="production"))
+    if staging:
+        token = os.getenv("SIGSTORE_IDENTITY_TOKEN_staging")
+        trust_config_func = ClientTrustConfig.staging
+        params.append(pytest.param((trust_config_func, token), id="staging"))
+    if local:
+        token = os.getenv("SIGSTORE_IDENTITY_TOKEN_local")  # type: ignore
+
+        def trust_config_func():
+            return ClientTrustConfig.from_json(
+                Path(os.getenv("TRUST_CONFIG")).read_text()
+            )
+
+        params.append(
+            pytest.param(
+                (trust_config_func, token),
+                id="local",
+                marks=pytest.mark.skipif(
+                    not _has_setup_sigstore_env(),
+                    reason="skipping test that use the local environment due to unset `TEST_SETUP_SIGSTORE_ENV` env variable",
+                ),
+            )
+        )
+    if custom_trust_config:
+        token = os.getenv("SIGSTORE_IDENTITY_TOKEN_custom")
+        params.append(pytest.param((custom_trust_config, token), id="custom"))
+
+    @pytest.fixture(params=params, name="env")
+    def fixture_func(request):
+        trust_config_func, token = request.param
+        ctx = SigningContext.from_trust_config(trust_config_func())
+
+        # Detect env variable for local interactive tests.
+        if not token:
+            # If the variable is not defined, try getting an ambient token.
+            token = detect_credential(TEST_CLIENT_ID)
+
+        def signer():
+            return ctx
+
+        def verifier():
+            return Verifier(trusted_root=ctx._trusted_root)
+
+        return signer, verifier, IdentityToken(token)
+
+    
+    def factory(func: Callable): 
+        # pytest.fixture(params=params, name="env")(fixture_func)
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            # pytest.fixture(params=params, name="env")(fixture_func)
+            return func(*args, **kwargs)
+        return wrapper
+
+
+    return factory
+    # return fixture_func
+    # return lambda request: fixture_func(request)
+    # return pytest.fixture(params=params)
+# 
+# globals()['env'] = make_env_fixture()
 
 
 @pytest.fixture
