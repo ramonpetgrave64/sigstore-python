@@ -55,20 +55,20 @@ class RekorV2Client(RekorLogSubmitter):
         Create a new `RekorV2Client` from the given URL.
         """
         self.url = f"{base_url}/api/v2"
-        self.session = requests.Session()
-        self.session.headers.update(
-            {
-                "Content-Type": "application/json",
-                "Accept": "application/json",
-                "User-Agent": USER_AGENT,
-            }
-        )
+        # self.session = requests.Session()
+        # self.session.headers.update(
+        #     {
+        #         "Content-Type": "application/json",
+        #         "Accept": "application/json",
+        #         "User-Agent": USER_AGENT,
+        #     }
+        # )
 
-    def __del__(self) -> None:
-        """
-        Terminates the underlying network session.
-        """
-        self.session.close()
+    # def __del__(self) -> None:
+    #     """
+    #     Terminates the underlying network session.
+    #     """
+    #     self.session.close()
 
     def create_entry(self, payload: EntryRequestBody) -> LogEntry:
         """
@@ -79,9 +79,14 @@ class RekorV2Client(RekorLogSubmitter):
         https://github.com/sigstore/rekor-tiles/blob/main/CLIENTS.md#handling-longer-requests
         """
         _logger.debug(f"proposed: {json.dumps(payload)}")
-        resp = self.session.post(
+        resp = requests.post(
             f"{self.url}/log/entries",
             json=payload,
+            headers={
+                "Content-Type": "application/json",
+                "Accept": "application/json",
+                "User-Agent": USER_AGENT,
+            }
         )
 
         try:
