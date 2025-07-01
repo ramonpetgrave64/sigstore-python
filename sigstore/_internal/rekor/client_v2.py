@@ -23,7 +23,6 @@ import logging
 from typing import cast
 
 import requests
-import urllib3
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric.ec import EllipticCurvePublicKey
 from cryptography.x509 import Certificate
@@ -56,22 +55,20 @@ class RekorV2Client(RekorLogSubmitter):
         Create a new `RekorV2Client` from the given URL.
         """
         self.url = f"{base_url}/api/v2"
-        self.pool = urllib3.connection_pool_from_url(
-            base_url,
-            maxsize=10,
-            block=True,
-            headers={
+        self.session = requests.Session()
+        self.session.headers.update(
+            {
                 "Content-Type": "application/json",
                 "Accept": "application/json",
                 "User-Agent": USER_AGENT,
-            },
+            }
         )
 
     def __del__(self) -> None:
         """
         Terminates the underlying network session.
         """
-        self.pool.close()
+        self.session.close()
 
     def create_entry(self, payload: EntryRequestBody) -> LogEntry:
         """
@@ -82,10 +79,9 @@ class RekorV2Client(RekorLogSubmitter):
         https://github.com/sigstore/rekor-tiles/blob/main/CLIENTS.md#handling-longer-requests
         """
         _logger.debug(f"proposed: {json.dumps(payload)}")
-        resp = self.pool.urlopen(
-            method="POST",
-            url=f"{self.url}/log/entries",
-            body=json.dumps(payload),
+        resp = self.session.post(
+            f"{self.url}/log/entries",
+            json=payload,
         )
 
         try:
