@@ -726,11 +726,12 @@ def _sign_common(
                 with outputs.bundle.open(mode="w") as io:
                     print(result.to_json(), file=io)
                 print(f"Sigstore bundle written to {outputs.bundle}")
+            # await asyncio.sleep(1)
         tasks = []
         for file, outputs in output_map.items():
             # concurrent behaviour here
             tasks.append(do_sign(file, outputs))
-        group = asyncio.gather(*tasks)
+        group = asyncio.gather(*reversed(tasks))
         # asyncio.run(group)
         asyncio.get_event_loop().run_until_complete(group)
 

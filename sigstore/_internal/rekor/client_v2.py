@@ -39,6 +39,7 @@ from sigstore._internal.rekor import (
 from sigstore.dsse import Envelope
 from sigstore.hashes import Hashed
 from sigstore.models import LogEntry
+import urllib3
 
 _logger = logging.getLogger(__name__)
 
@@ -55,6 +56,16 @@ class RekorV2Client(RekorLogSubmitter):
         Create a new `RekorV2Client` from the given URL.
         """
         self.url = f"{base_url}/api/v2"
+        self.pool = urllib3.connection_pool_from_url(
+            base_url,
+            maxsize=10,
+            block=True,
+            headers= {
+                "Content-Type": "application/json",
+                "Accept": "application/json",
+                "User-Agent": USER_AGENT,
+            }
+        )
         # self.session = requests.Session()
         # self.session.headers.update(
         #     {
@@ -64,11 +75,12 @@ class RekorV2Client(RekorLogSubmitter):
         #     }
         # )
 
-    # def __del__(self) -> None:
-    #     """
-    #     Terminates the underlying network session.
-    #     """
-    #     self.session.close()
+    def __del__(self) -> None:
+        """
+        Terminates the underlying network session.
+        """
+        # self.session.close()
+        self.pool.close()
 
     def create_entry(self, payload: EntryRequestBody) -> LogEntry:
         """
@@ -79,14 +91,10 @@ class RekorV2Client(RekorLogSubmitter):
         https://github.com/sigstore/rekor-tiles/blob/main/CLIENTS.md#handling-longer-requests
         """
         _logger.debug(f"proposed: {json.dumps(payload)}")
-        resp = requests.post(
-            f"{self.url}/log/entries",
-            json=payload,
-            headers={
-                "Content-Type": "application/json",
-                "Accept": "application/json",
-                "User-Agent": USER_AGENT,
-            }
+        resp = self.pool.urlopen(
+            method="POST",
+            url=f"{self.url}/log/entries",
+            body=json.dumps(payload),
         )
 
         try:
