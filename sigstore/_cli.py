@@ -729,10 +729,8 @@ def _sign_common(
 
         tasks = []
         for file, outputs in output_map.items():
-            # concurrent behaviour here
             tasks.append(do_sign(file, outputs))
         group = asyncio.gather(*reversed(tasks))
-        # asyncio.run(group)
         asyncio.get_event_loop().run_until_complete(group)
 
 
