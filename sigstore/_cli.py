@@ -15,7 +15,6 @@
 from __future__ import annotations
 
 import argparse
-from asyncio import create_task
 import asyncio
 import base64
 import json
@@ -669,6 +668,7 @@ def _sign_common(
         _invalid_arguments(args, "No identity token supplied or detected!")
 
     with signing_ctx.signer(identity) as signer:
+
         async def do_sign(file, outputs):
             _logger.debug(f"signing for {file.name}")
             with file.open(mode="rb") as io:
@@ -726,7 +726,7 @@ def _sign_common(
                 with outputs.bundle.open(mode="w") as io:
                     print(result.to_json(), file=io)
                 print(f"Sigstore bundle written to {outputs.bundle}")
-            # await asyncio.sleep(1)
+
         tasks = []
         for file, outputs in output_map.items():
             # concurrent behaviour here
@@ -734,7 +734,6 @@ def _sign_common(
         group = asyncio.gather(*reversed(tasks))
         # asyncio.run(group)
         asyncio.get_event_loop().run_until_complete(group)
-
 
 
 def _attest(args: argparse.Namespace) -> None:

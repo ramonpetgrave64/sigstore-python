@@ -23,6 +23,7 @@ import logging
 from typing import cast
 
 import requests
+import urllib3
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric.ec import EllipticCurvePublicKey
 from cryptography.x509 import Certificate
@@ -39,7 +40,6 @@ from sigstore._internal.rekor import (
 from sigstore.dsse import Envelope
 from sigstore.hashes import Hashed
 from sigstore.models import LogEntry
-import urllib3
 
 _logger = logging.getLogger(__name__)
 
@@ -60,26 +60,17 @@ class RekorV2Client(RekorLogSubmitter):
             base_url,
             maxsize=10,
             block=True,
-            headers= {
+            headers={
                 "Content-Type": "application/json",
                 "Accept": "application/json",
                 "User-Agent": USER_AGENT,
-            }
+            },
         )
-        # self.session = requests.Session()
-        # self.session.headers.update(
-        #     {
-        #         "Content-Type": "application/json",
-        #         "Accept": "application/json",
-        #         "User-Agent": USER_AGENT,
-        #     }
-        # )
 
     def __del__(self) -> None:
         """
         Terminates the underlying network session.
         """
-        # self.session.close()
         self.pool.close()
 
     def create_entry(self, payload: EntryRequestBody) -> LogEntry:
