@@ -669,71 +669,71 @@ def _sign_common(
         _invalid_arguments(args, "No identity token supplied or detected!")
 
     with signing_ctx.signer(identity) as signer:
+        async def do_sign(file, outputs):
+            _logger.debug(f"signing for {file.name}")
+            with file.open(mode="rb") as io:
+                # The input can be indefinitely large, so we perform a streaming
+                # digest and sign the prehash rather than buffering it fully.
+                digest = sha256_digest(io)
+            try:
+                if predicate is None:
+                    result = signer.sign_artifact(input_=digest)
+                else:
+                    subject = Subject(
+                        name=file.name, digest={"sha256": digest.digest.hex()}
+                    )
+                    predicate_type = args.predicate_type
+                    statement_builder = StatementBuilder(
+                        subjects=[subject],
+                        predicate_type=predicate_type,
+                        predicate=predicate,
+                    )
+                    result = signer.sign_dsse(statement_builder.build())
+            except ExpiredIdentity as exp_identity:
+                print("Signature failed: identity token has expired")
+                raise exp_identity
+
+            except ExpiredCertificate as exp_certificate:
+                print("Signature failed: Fulcio signing certificate has expired")
+                raise exp_certificate
+
+            print("Using ephemeral certificate:")
+            cert = result.signing_certificate
+            cert_pem = cert.public_bytes(Encoding.PEM).decode()
+            print(cert_pem)
+
+            print(
+                f"Transparency log entry created at index: {result.log_entry.log_index}"
+            )
+
+            sig_output: TextIO
+            if outputs.signature is not None:
+                sig_output = outputs.signature.open("w")
+            else:
+                sig_output = sys.stdout
+
+            signature = base64.b64encode(result.signature).decode()
+            print(signature, file=sig_output)
+            if outputs.signature is not None:
+                print(f"Signature written to {outputs.signature}")
+
+            if outputs.certificate is not None:
+                with outputs.certificate.open(mode="w") as io:
+                    print(cert_pem, file=io)
+                print(f"Certificate written to {outputs.certificate}")
+
+            if outputs.bundle is not None:
+                with outputs.bundle.open(mode="w") as io:
+                    print(result.to_json(), file=io)
+                print(f"Sigstore bundle written to {outputs.bundle}")
         tasks = []
         for file, outputs in output_map.items():
             # concurrent behaviour here
-            async def do_sign(file, outputs):
-                _logger.debug(f"signing for {file.name}")
-                with file.open(mode="rb") as io:
-                    # The input can be indefinitely large, so we perform a streaming
-                    # digest and sign the prehash rather than buffering it fully.
-                    digest = sha256_digest(io)
-                try:
-                    if predicate is None:
-                        result = signer.sign_artifact(input_=digest)
-                    else:
-                        subject = Subject(
-                            name=file.name, digest={"sha256": digest.digest.hex()}
-                        )
-                        predicate_type = args.predicate_type
-                        statement_builder = StatementBuilder(
-                            subjects=[subject],
-                            predicate_type=predicate_type,
-                            predicate=predicate,
-                        )
-                        result = signer.sign_dsse(statement_builder.build())
-                except ExpiredIdentity as exp_identity:
-                    print("Signature failed: identity token has expired")
-                    raise exp_identity
-
-                except ExpiredCertificate as exp_certificate:
-                    print("Signature failed: Fulcio signing certificate has expired")
-                    raise exp_certificate
-
-                print("Using ephemeral certificate:")
-                cert = result.signing_certificate
-                cert_pem = cert.public_bytes(Encoding.PEM).decode()
-                print(cert_pem)
-
-                print(
-                    f"Transparency log entry created at index: {result.log_entry.log_index}"
-                )
-
-                sig_output: TextIO
-                if outputs.signature is not None:
-                    sig_output = outputs.signature.open("w")
-                else:
-                    sig_output = sys.stdout
-
-                signature = base64.b64encode(result.signature).decode()
-                print(signature, file=sig_output)
-                if outputs.signature is not None:
-                    print(f"Signature written to {outputs.signature}")
-
-                if outputs.certificate is not None:
-                    with outputs.certificate.open(mode="w") as io:
-                        print(cert_pem, file=io)
-                    print(f"Certificate written to {outputs.certificate}")
-
-                if outputs.bundle is not None:
-                    with outputs.bundle.open(mode="w") as io:
-                        print(result.to_json(), file=io)
-                    print(f"Sigstore bundle written to {outputs.bundle}")
             tasks.append(do_sign(file, outputs))
         group = asyncio.gather(*tasks)
         # asyncio.run(group)
         asyncio.get_event_loop().run_until_complete(group)
-            
+
 
 
 def _attest(args: argparse.Namespace) -> None:
