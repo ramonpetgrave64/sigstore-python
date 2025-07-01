@@ -20,7 +20,7 @@ from __future__ import annotations
 
 import json
 import logging
-from typing import cast
+from typing import Optional, cast
 
 import requests
 from cryptography.hazmat.primitives import serialization
@@ -36,6 +36,7 @@ from sigstore._internal.rekor import (
     RekorClientError,
     RekorLogSubmitter,
 )
+from sigstore._internal.rekor.checkpoint import SignedCheckpoint
 from sigstore.dsse import Envelope
 from sigstore.hashes import Hashed
 from sigstore.models import LogEntry
@@ -171,3 +172,28 @@ class RekorV2Client(RekorLogSubmitter):
             )
         )
         return EntryRequestBody(req.to_dict())
+
+    def get_entry(self, log_index: int, tree_size: Optional[int]) -> v2.Entry:
+        """
+        Retrieves rekorV2 Entry. If tree_size is not provided, it will be
+        fetched from the instance's `/checkpoint` endpoint.
+        """
+        # get tree size if necessary
+        # fetch the entry,
+        # verify? maybe not, since only checkoints are verified in the official go client.
+        return None
+
+    def get_log_size(self) -> int:
+        """
+        Retrieves rekorV2 Tree Size from the instance's `/checkpoint` endpoint.
+        See https://github.com/C2SP/C2SP/blob/fd03b053838aba9d506b4f17e49e49f41753a7bb/tlog-checkpoint.md.
+        """
+        resp = self.session.get(f"{self.url}/checkpoint")
+        try:
+            resp.raise_for_status()
+        except requests.HTTPError as http_error:
+            raise RekorClientError(http_error)
+        signed_checkpoint = SignedCheckpoint.from_text(resp.text)
+        # need keyring
+        # signed_checkpoint.signed_note.verify(...)
+        return signed_checkpoint.checkpoint.log_size

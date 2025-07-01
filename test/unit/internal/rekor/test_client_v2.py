@@ -78,3 +78,9 @@ def test_rekor_v2_create_entry_hashed_rekord(staging):
 
     assert isinstance(bundle.log_entry, LogEntry)
     assert isinstance(bundle.log_entry._to_rekor(), rekor_v1.TransparencyLogEntry)
+
+
+def test_get_tree_size():
+    client = RekorV2Client(ALPHA_REKOR_V2_URL)
+    size = client.get_log_size()
+    assert isinstance(size, int)
