@@ -99,16 +99,25 @@ class Signer:
         self.__cached_signing_certificate: x509.Certificate | None = None
         if cache:
             _logger.debug("Generating ephemeral keys...")
-            self.__cached_private_key = ec.generate_private_key(ec.SECP256R1())
+            self.__cached_private_key = self._generate_private_key()
             _logger.debug("Requesting ephemeral certificate...")
             self.__cached_signing_certificate = self._signing_cert()
+
+    @classmethod
+    def _certificate_sigining_hash_algorithm(cls) -> hashes.HashAlgorithm:
+        return hashes.SHA256()
+
+    @classmethod
+    def _generate_private_key(cls) -> ec.EllipticCurvePrivateKey:
+        """Generate a signing key."""
+        return ec.generate_private_key(ec.SECP256R1())
 
     @property
     def _private_key(self) -> ec.EllipticCurvePrivateKey:
         """Get or generate a signing key."""
         if self.__cached_private_key is None:
             _logger.debug("no cached key; generating ephemeral key")
-            return ec.generate_private_key(ec.SECP256R1())
+            return self._generate_private_key()
         return self.__cached_private_key
 
     def _signing_cert(
@@ -153,7 +162,9 @@ class Signer:
                     critical=True,
                 )
             )
-            certificate_request = builder.sign(self._private_key, hashes.SHA256())
+            certificate_request = builder.sign(
+                self._private_key, self._certificate_sigining_hash_algorithm()
+            )
 
             certificate_response = self._signing_ctx._fulcio.signing_cert.post(
                 certificate_request, self._identity_token

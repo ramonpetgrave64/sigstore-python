@@ -16,16 +16,21 @@
 import hashlib
 import json
 import logging
+import secrets
 from datetime import datetime, timezone
+from unittest.mock import Mock, patch
 
 import pretend
 import pytest
 import rfc3161_client
+from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives.asymmetric import ec
 
 from sigstore._internal.trust import CertificateAuthority
 from sigstore.dsse import StatementBuilder, Subject
 from sigstore.errors import VerificationError
 from sigstore.models import Bundle
+from sigstore.sign import Signer
 from sigstore.verify import policy
 from sigstore.verify.verifier import Verifier
 
@@ -195,6 +200,31 @@ def test_verifier_dsse_roundtrip(staging):
     payload_type, payload = verifier.verify_dsse(bundle, policy.UnsafeNoOp())
     assert payload_type == "application/vnd.in-toto+json"
     assert payload == stmt._contents
+
+
+@pytest.mark.staging
+@pytest.mark.ambient_oidc
+@patch.multiple(
+    Signer,
+    _certificate_sigining_hash_algorithm=Mock(return_value=hashes.SHA512()),
+    _generate_private_key=Mock(return_value=ec.generate_private_key(ec.SECP521R1())),
+)
+def test_verifier_alternate_algorithms(staging):
+    """
+    Ensures that we can verify bundles where the certificate is produced with each the supported key types
+    and algorithms.
+    """
+    payload = secrets.token_bytes(32)
+
+    signer_cls, verifier_cls, identity = staging
+    verifier = verifier_cls()
+    ctx = signer_cls()
+    with ctx.signer(identity) as signer:
+        assert isinstance(signer._private_key, ec.EllipticCurvePrivateKey)
+        assert signer._private_key.key_size == 521
+
+        bundle = signer.sign_artifact(payload)
+        verifier.verify_artifact(payload, bundle=bundle, policy=policy.UnsafeNoOp())
 
 
 class TestVerifierWithTimestamp:
